@@ -61,8 +61,8 @@ impl Client {
 
 #[derive(Serialize, Deserialize)]
 pub struct Value4ValueResponse {
-    keysend_pubkey: String,
-    keysend_custom_key: String,
-    keysend_custom_value: String,
-    lightning_address: Option<String>,
+    pub keysend_pubkey: String,
+    pub keysend_custom_key: String,
+    pub keysend_custom_value: String,
+    pub lightning_address: Option<String>,
 }
