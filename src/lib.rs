@@ -50,6 +50,10 @@ impl Client {
             .await
             .map_err(|e| Error::RequestError(e))?;
 
+        if resp.status() == 401 {
+            return Err(Error::InvalidAccessToken)
+        }
+
         let resp = resp.bytes()
         .await
         .map_err(|e| Error::ParsingError { msg: format!("Failed to convert alby reponse into bytes {}", e.to_string()) })?;
