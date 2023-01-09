@@ -12,10 +12,10 @@ pub enum Error {
     #[error("Invalid access token")]
     InvalidAccessToken,
 
-    #[error("Request Error")]
+    #[error("Request Error {0}")]
     RequestError(reqwest::Error),
 
-    #[error("Parsing Error")]
+    #[error("Parsing Error {msg:?}")]
     ParsingError { msg: String },
 }
 pub struct Client {
