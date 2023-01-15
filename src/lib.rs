@@ -9,6 +9,8 @@ use thiserror::Error;
 
 use serde_json;
 
+use sha2::{Sha256, Digest};
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Error)]
@@ -53,7 +55,8 @@ impl Client {
             client_id: client_id.to_string(),
             client_secret: client_secret.to_string(),
         };
-        let refresh_struct = get_new_refresh_token(&auth, old_refresh_token).await?;
+        let client = reqwest::Client::new();
+        let refresh_struct = get_new_refresh_token(&client, &auth, old_refresh_token).await?;
 
         let mut headers = HeaderMap::new();
         let mut auth_value = header::HeaderValue::from_str(&format!("Bearer {}", refresh_struct.access_token)).map_err(|_| Error::InvalidAccessToken)?;
@@ -96,16 +99,58 @@ impl Client {
         let auth = self.auth.as_ref().ok_or(Error::MissingAuth)?;
         let refresh_token = self.refresh_token.as_ref().ok_or(Error::MissingRefreshToken)?;
 
-        let refresh_response = get_new_refresh_token(auth, refresh_token).await?;
+        let refresh_response = get_new_refresh_token(&self.client, auth, refresh_token).await?;
 
         self.access_token = refresh_response.access_token;
         self.refresh_token = Some(refresh_response.refresh_token);
+
+        let headers = HeaderMap::from_iter(vec![(header::AUTHORIZATION, header::HeaderValue::from_str(&format!("Bearer {}", self.access_token)).map_err(|_| Error::InvalidAccessToken)?)]);
+
+        self.client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .map_err(|_| Error::InvalidAccessToken)?;
+
 
         return Ok(())
     }
 
     pub async fn get_value4value(&self) -> Result<Value4ValueResponse> {
         let resp = self.client.get("https://api.getalby.com/user/value4value")
+            .send()
+            .await
+            .map_err(|e| Error::RequestError(e))?;
+
+        if resp.status() == 401 {
+            return Err(Error::AuthError)
+        }
+
+        let resp = resp.bytes()
+        .await
+        .map_err(|e| Error::ParsingError(format!("Failed to convert alby reponse into bytes {}", e.to_string())))?;
+
+        return serde_json::from_slice(&resp)
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e.to_string())));
+    }
+
+    pub async fn create_invoice(&self, amount: usize, description: Option<String>) -> Result<CreateInvoiceResponse> {
+        let description_hash = description.clone().map(|description|{
+            let mut hasher = Sha256::new();
+            hasher.update(description.as_bytes());
+            hex::encode(hasher.finalize().to_vec())
+        });
+
+        let request = CreateInvoiceRequest {
+            amount,
+            description,
+            description_hash,
+        };
+
+        let json_request = serde_json::to_string(&request)
+            .map_err(|e| Error::ParsingError(format!("Failed to parse request {}", e.to_string())))?;
+
+        let resp = self.client.post("https://api.getalby.com/user/invoice")
+            .body(json_request)
             .send()
             .await
             .map_err(|e| Error::RequestError(e))?;
@@ -140,15 +185,26 @@ pub struct RefreshTokenResponse {
     pub scope: String,
 }
 
-async fn get_new_refresh_token(auth: &Auth, refresh_token: &str) -> Result<RefreshTokenResponse> {
+#[derive(Serialize, Deserialize)]
+pub struct CreateInvoiceResponse {
+    pub expires_at: String,
+    pub payment_hash: String,
+    pub payment_request: String,
+}
 
+#[derive(Serialize, Deserialize)]
+pub struct CreateInvoiceRequest {
+    pub amount: usize,
+    pub description: Option<String>,
+    pub description_hash: Option<String>,
+}
+
+async fn get_new_refresh_token(client: &reqwest::Client, auth: &Auth, refresh_token: &str) -> Result<RefreshTokenResponse> {
 
     let form: HashMap<&str, &str> = HashMap::from_iter(vec![
         ("grant_type", "refresh_token"),
         ("refresh_token", refresh_token),
     ]);
-
-    let client = reqwest::Client::new();
 
     let resp = client.post("https://api.getalby.com/oauth/token")
         .basic_auth(&auth.client_id, Some(&auth.client_secret))
