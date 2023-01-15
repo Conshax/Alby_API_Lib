@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use reqwest::{self, header};
 use reqwest::header::HeaderMap;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use thiserror::Error;
 
@@ -37,10 +37,13 @@ pub enum Error {
     AlbyError(String),
 }
 
+#[derive(Debug)]
 struct Auth {
     pub client_id: String,
     pub client_secret: String,
 }
+
+#[derive(Debug)]
 pub struct Client {
     pub client: reqwest::Client,
     pub access_token: String,
@@ -149,26 +152,31 @@ impl Client {
         let json_request = serde_json::to_string(&request)
             .map_err(|e| Error::ParsingError(format!("Failed to parse request {}", e.to_string())))?;
 
-        let resp = self.client.post("https://api.getalby.com/user/invoice")
+        println!("{}", json_request);
+
+        let resp = self.client.post("https://api.getalby.com/invoices")
             .body(json_request)
+            .header("Content-Type", "application/json")
             .send()
             .await
             .map_err(|e| Error::RequestError(e))?;
 
         if resp.status() == 401 {
             return Err(Error::AuthError)
+        } else if resp.status() == 200 {
+            let resp = resp.bytes()
+            .await
+            .map_err(|e| Error::ParsingError(format!("Failed to convert alby reponse into bytes {}", e.to_string())))?;
+
+            return serde_json::from_slice(&resp)
+                .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e.to_string())));
+        } else {
+            return Err(Error::AlbyError(resp.text().await.map_err(|e| Error::ParsingError(format!("Failed to convert alby error reponse into string {}", e.to_string())))?))
         }
-
-        let resp = resp.bytes()
-        .await
-        .map_err(|e| Error::ParsingError(format!("Failed to convert alby reponse into bytes {}", e.to_string())))?;
-
-        return serde_json::from_slice(&resp)
-            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e.to_string())));
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Value4ValueResponse {
     pub keysend_pubkey: String,
     pub keysend_custom_key: String,
@@ -176,7 +184,7 @@ pub struct Value4ValueResponse {
     pub lightning_address: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RefreshTokenResponse {
     pub access_token: String,
     pub refresh_token: String,
@@ -185,17 +193,19 @@ pub struct RefreshTokenResponse {
     pub scope: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CreateInvoiceResponse {
-    pub expires_at: String,
-    pub payment_hash: String,
-    pub payment_request: String,
+    pub expires_at: Option<String>,
+    pub payment_hash: Option<String>,
+    pub payment_request: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CreateInvoiceRequest {
     pub amount: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description_hash: Option<String>,
 }
 

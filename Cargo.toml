@@ -6,11 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-std = { version = "1.12.0", features = ["attributes"] }
 hex = "0.4.3"
 reqwest = { version = "0.11.13", default-features = false, features = ["rustls-tls"] }
-serde = "1.0.152"
-serde_derive = "1.0.152"
+serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
 sha2 = "0.10.6"
 thiserror = "1.0.38"
 
+[dev-dependencies]
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+tokio = { version = "1.24.1", features = ["rt", "macros"] }
