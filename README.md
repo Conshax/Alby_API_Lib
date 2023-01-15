@@ -1,6 +1,6 @@
 # Alby_API_Lib
 A Rust library for the Alby API.
-The library provides some simple abstractions for the Alby API, with function for the routes and structs for the request and return types.
+The library provides some simple abstractions for the Alby API, with functions for the routes and structs for the request and return types.
 
 # Currently Implemented
 * Refreshing a Token (https://api.getalby.com/oauth/token)
