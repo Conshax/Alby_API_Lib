@@ -58,7 +58,6 @@ async fn test_create_invoice() {
 
     let invoice = client.create_invoice(1000, None).await;
 
-    println!("{:?}", invoice);
     assert!(invoice.is_ok());
     let invoice = invoice.unwrap();
     assert!(invoice.payment_request.is_some());

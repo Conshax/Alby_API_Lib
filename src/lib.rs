@@ -152,8 +152,6 @@ impl Client {
         let json_request = serde_json::to_string(&request)
             .map_err(|e| Error::ParsingError(format!("Failed to parse request {}", e.to_string())))?;
 
-        println!("{}", json_request);
-
         let resp = self.client.post("https://api.getalby.com/invoices")
             .body(json_request)
             .header("Content-Type", "application/json")
