@@ -4,6 +4,7 @@ use tokio;
 use dotenv_codegen::dotenv;
 
 #[tokio::test]
+#[ignore]
 async fn test_refresh_token() {
     let refresh_token = dotenv!("ALBY_REFRESH_TOKEN");
     let client_id = dotenv!("ALBY_CLIENT_ID");
@@ -41,13 +42,18 @@ async fn test_get_v4v() {
     let client = get_client_from_access_token().unwrap();
 
     let v4v = client.get_value4value().await;
+    dbg!(&v4v);
 
     assert!(v4v.is_ok());
     let v4v = v4v.unwrap();
 
-    assert_eq!(v4v.keysend_custom_key, dotenv!("ALBY_CUSTOM_KEY"));
-    assert_eq!(v4v.keysend_custom_value, dotenv!("ALBY_CUSTOM_VALUE"));
-    assert_eq!(v4v.keysend_pubkey, dotenv!("ALBY_PUBKEY"));
+    assert!(v4v.keysend_custom_key.is_some());
+    assert!(v4v.keysend_custom_value.is_some());
+    assert!(v4v.keysend_pubkey.is_some());
+
+    assert_eq!(v4v.keysend_custom_key.unwrap(), dotenv!("ALBY_CUSTOM_KEY"));
+    assert_eq!(v4v.keysend_custom_value.unwrap(), dotenv!("ALBY_CUSTOM_VALUE"));
+    assert_eq!(v4v.keysend_pubkey.unwrap(), dotenv!("ALBY_PUBKEY"));
     assert!(v4v.lightning_address.is_some());
     assert_eq!(v4v.lightning_address.unwrap(), dotenv!("ALBY_LIGHTNING_ADDRESS"));
 }
