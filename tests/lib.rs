@@ -35,6 +35,17 @@ async fn test_from_access_token() {
 }
 
 #[tokio::test]
+async fn test_me() {
+    let client = get_client_from_access_token().unwrap();
+
+    let me = client.get_me().await;
+
+    assert!(me.is_ok());
+
+    assert_eq!(me.unwrap().identifier, "4VqhBQ73TSgpTFbJ35C3");
+}
+
+#[tokio::test]
 async fn test_get_v4v() {
     let client = get_client_from_access_token().unwrap();
 

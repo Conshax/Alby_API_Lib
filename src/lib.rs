@@ -148,6 +148,23 @@ impl Client {
             .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
     }
 
+    pub async fn get_me(&self) -> Result<MeResponse> {
+        let resp = self
+            .client
+            .get("https://api.getalby.com/user/me")
+            .send()
+            .await
+            .map_err(Error::RequestError)?;
+
+        if resp.status() == 401 {
+            return Err(Error::AuthError);
+        }
+
+        resp.json()
+            .await
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+    }
+
     pub async fn create_invoice(
         &self,
         amount: usize,
@@ -219,6 +236,23 @@ pub struct CreateInvoiceResponse {
     pub expires_at: Option<String>,
     pub payment_hash: Option<String>,
     pub payment_request: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MeResponse {
+    pub identifier: String,
+    pub email: Option<String>,
+    pub name: Option<String>,
+    pub avatar: Option<String>,
+    #[serde(rename = "keysend_custom_key")]
+    pub keysend_custom_key: Option<String>,
+    #[serde(rename = "keysend_custom_value")]
+    pub keysend_custom_value: Option<String>,
+    #[serde(rename = "keysend_pubkey")]
+    pub keysend_pubkey: Option<String>,
+    #[serde(rename = "lightning_address")]
+    pub lightning_address: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
