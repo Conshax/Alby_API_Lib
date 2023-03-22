@@ -1,22 +1,19 @@
 use alby_api_lib::{Client, Error};
-use tokio;
-
-use dotenv_codegen::dotenv;
 
 #[tokio::test]
 #[ignore]
 async fn test_refresh_token() {
-    let refresh_token = dotenv!("ALBY_REFRESH_TOKEN");
-    let client_id = dotenv!("ALBY_CLIENT_ID");
-    let client_secret = dotenv!("ALBY_CLIENT_SECRET");
+    let refresh_token = std::env::var("ALBY_REFRESH_TOKEN").unwrap();
+    let client_id = std::env::var("ALBY_CLIENT_ID").unwrap();
+    let client_secret = std::env::var("ALBY_CLIENT_SECRET").unwrap();
 
     let old_refresh_token = refresh_token.to_owned();
-    
+
     let client = Client::from_refresh_token(&refresh_token, &client_id, &client_secret).await;
 
     assert!(client.is_ok());
     let mut client = client.unwrap();
-    
+
     assert!(client.refresh_token.is_some());
     let refresh_token = client.refresh_token.to_owned().unwrap();
 
@@ -51,11 +48,24 @@ async fn test_get_v4v() {
     assert!(v4v.keysend_custom_value.is_some());
     assert!(v4v.keysend_pubkey.is_some());
 
-    assert_eq!(v4v.keysend_custom_key.unwrap(), dotenv!("ALBY_CUSTOM_KEY"));
-    assert_eq!(v4v.keysend_custom_value.unwrap(), dotenv!("ALBY_CUSTOM_VALUE"));
-    assert_eq!(v4v.keysend_pubkey.unwrap(), dotenv!("ALBY_PUBKEY"));
+    assert_eq!(
+        v4v.keysend_custom_key.unwrap(),
+        std::env::var("ALBY_CUSTOM_KEY").unwrap()
+    );
+    assert_eq!(
+        v4v.keysend_custom_value.unwrap(),
+        std::env::var("ALBY_CUSTOM_VALUE").unwrap()
+    );
+    assert_eq!(
+        v4v.keysend_pubkey.unwrap(),
+        std::env::var("ALBY_PUBKEY").unwrap()
+    );
+
     assert!(v4v.lightning_address.is_some());
-    assert_eq!(v4v.lightning_address.unwrap(), dotenv!("ALBY_LIGHTNING_ADDRESS"));
+    assert_eq!(
+        v4v.lightning_address.unwrap(),
+        std::env::var("ALBY_LIGHTNING_ADDRESS").unwrap()
+    );
 }
 
 #[tokio::test]
@@ -69,7 +79,7 @@ async fn test_create_invoice() {
     assert!(invoice.payment_request.is_some());
 }
 
-fn get_client_from_access_token() -> Result<Client, Error>{
-    let access_token = dotenv!("ALBY_ACCESS_TOKEN");
-    Client::from_access_token(access_token.to_owned())
+fn get_client_from_access_token() -> Result<Client, Error> {
+    let access_token = std::env::var("ALBY_ACCESS_TOKEN").unwrap();
+    Client::from_access_token(access_token)
 }
