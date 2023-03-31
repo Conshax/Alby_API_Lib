@@ -167,6 +167,23 @@ impl Client {
             .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
     }
 
+    pub async fn get_summary(&self) -> Result<SummaryResponse> {
+        let resp = self
+            .client
+            .get("https://api.getalby.com/user/summary")
+            .send()
+            .await
+            .map_err(Error::RequestError)?;
+
+        if resp.status() == 401 {
+            return Err(Error::AuthError);
+        }
+
+        resp.json()
+            .await
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+    }
+
     pub async fn get_invoices(
         &self,
         created_at_gt: Option<chrono::DateTime<FixedOffset>>,
@@ -358,6 +375,26 @@ pub struct CreateInvoiceRequest {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_hash: Option<String>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SummaryResponse {
+    pub balance: u64,
+    #[serde(rename = "boostagrams_count")]
+    pub boostagrams_count: usize,
+    pub currency: String,
+    #[serde(rename = "invoices_count")]
+    pub invoices_count: usize,
+    #[serde(rename = "last_invoice_at")]
+    pub last_invoice_at: String,
+    #[serde(rename = "total_received")]
+    pub total_received: usize,
+    #[serde(rename = "total_sent")]
+    pub total_sent: usize,
+    #[serde(rename = "transactions_count")]
+    pub transactions_count: usize,
+    pub unit: String,
 }
 
 async fn get_new_refresh_token(
