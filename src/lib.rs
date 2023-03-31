@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use chrono::Utc;
 use reqwest::header::HeaderMap;
 use reqwest::{self, header};
 
@@ -8,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use sha2::{Digest, Sha256};
+use v4v_types::boostagram::Boostagram;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -165,6 +167,45 @@ impl Client {
             .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
     }
 
+    pub async fn get_invoices(
+        &self,
+        created_at_gt: Option<chrono::DateTime<Utc>>,
+        created_at_lt: Option<chrono::DateTime<Utc>>,
+        items: Option<u8>, //max 100
+        page: Option<usize>,
+    ) -> Result<Vec<InvoiceResponse>> {
+        if items > Some(100) {
+            return Err(Error::AlbyError(
+                "items can not be greater than 100(Alby api has max 100)".to_string(),
+            ));
+        }
+
+        let mut req = self.client.get("https://api.getalby.com/invoices/incoming");
+
+        if let Some(created_at_gt) = created_at_gt {
+            req = req.query(&("created_at_gt", created_at_gt.timestamp()));
+        }
+        if let Some(created_at_lt) = created_at_lt {
+            req = req.query(&("created_at_lt", created_at_lt.timestamp()));
+        }
+        if let Some(items) = items {
+            req = req.query(&("items", items));
+        }
+        if let Some(page) = page {
+            req = req.query(&("page", page));
+        }
+
+        let resp = req.send().await.map_err(Error::RequestError)?;
+
+        if resp.status() == 401 {
+            return Err(Error::AuthError);
+        }
+
+        resp.json()
+            .await
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+    }
+
     pub async fn create_invoice(
         &self,
         amount: usize,
@@ -212,6 +253,61 @@ impl Client {
             })?));
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InvoiceResponse {
+    pub amount: u64,
+    pub boostagram: Option<Boostagram>,
+    pub comment: Option<String>,
+    #[serde(rename = "created_at")]
+    pub created_at: String,
+    #[serde(rename = "creation_date")]
+    pub creation_date: u64,
+    pub currency: String,
+    #[serde(rename = "custom_records")]
+    pub custom_records: CustomRecords,
+    #[serde(rename = "description_hash")]
+    pub description_hash: Option<String>,
+    #[serde(rename = "expires_at")]
+    pub expires_at: String,
+    pub expiry: i64,
+    #[serde(rename = "fiat_currency")]
+    pub fiat_currency: String,
+    #[serde(rename = "fiat_in_cents")]
+    pub fiat_in_cents: u64,
+    pub identifier: String,
+    #[serde(rename = "keysend_message")]
+    pub keysend_message: Option<String>,
+    pub memo: String,
+    #[serde(rename = "payer_name")]
+    pub payer_name: String,
+    #[serde(rename = "payment_hash")]
+    pub payment_hash: String,
+    #[serde(rename = "payment_request")]
+    pub payment_request: String,
+    #[serde(rename = "r_hash_str")]
+    pub r_hash_str: String,
+    pub settled: bool,
+    #[serde(rename = "settled_at")]
+    pub settled_at: String,
+    pub state: String,
+    #[serde(rename = "type")]
+    pub type_field: String,
+    pub value: u64,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomRecords {
+    #[serde(rename = "696969")]
+    pub n696969: String,
+    #[serde(rename = "7629169")]
+    pub n7629169: String,
+    #[serde(rename = "7629171")]
+    pub n7629171: String,
+    #[serde(rename = "5482373484")]
+    pub n5482373484: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
