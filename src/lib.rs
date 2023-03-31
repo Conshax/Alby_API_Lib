@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::Utc;
+use chrono::FixedOffset;
 use reqwest::header::HeaderMap;
 use reqwest::{self, header};
 
@@ -169,8 +169,8 @@ impl Client {
 
     pub async fn get_invoices(
         &self,
-        created_at_gt: Option<chrono::DateTime<Utc>>,
-        created_at_lt: Option<chrono::DateTime<Utc>>,
+        created_at_gt: Option<chrono::DateTime<FixedOffset>>,
+        created_at_lt: Option<chrono::DateTime<FixedOffset>>,
         items: Option<u8>, //max 100
         page: Option<usize>,
     ) -> Result<Vec<InvoiceResponse>> {
