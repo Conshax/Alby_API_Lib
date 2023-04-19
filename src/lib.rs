@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use thiserror::Error;
 
+use rust_v4v::boostagram::Boostagram;
 use sha2::{Digest, Sha256};
-use v4v_types::boostagram::Boostagram;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
