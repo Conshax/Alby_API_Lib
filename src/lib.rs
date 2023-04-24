@@ -351,7 +351,7 @@ pub struct CreateInvoiceResponse {
     pub payment_request: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MeResponse {
     pub identifier: String,
