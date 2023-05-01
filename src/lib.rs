@@ -272,7 +272,7 @@ impl Client {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct InvoiceResponse {
     pub amount: u64,
     pub boostagram: Option<Boostagram>,
@@ -327,7 +327,7 @@ pub struct CustomRecords {
     pub n5482373484: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Value4ValueResponse {
     pub keysend_pubkey: Option<String>,
     pub keysend_custom_key: Option<String>,
@@ -335,7 +335,7 @@ pub struct Value4ValueResponse {
     pub lightning_address: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct RefreshTokenResponse {
     pub access_token: String,
     pub refresh_token: String,
@@ -344,14 +344,14 @@ pub struct RefreshTokenResponse {
     pub scope: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CreateInvoiceResponse {
     pub expires_at: Option<String>,
     pub payment_hash: Option<String>,
     pub payment_request: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct MeResponse {
     pub identifier: String,
@@ -368,7 +368,7 @@ pub struct MeResponse {
     pub lightning_address: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CreateInvoiceRequest {
     pub amount: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
