@@ -4,8 +4,8 @@ use alby_api_lib::{Client, Error};
 #[ignore]
 async fn test_refresh_token() {
     let refresh_token = std::env::var("ALBY_REFRESH_TOKEN").unwrap();
-    let client_id = std::env::var("ALBY_CLIENT_ID").unwrap();
-    let client_secret = std::env::var("ALBY_CLIENT_SECRET").unwrap();
+    let client_id = std::env::var("ALBY_API_KEY").unwrap();
+    let client_secret = std::env::var("ALBY_API_SECRET").unwrap();
 
     let old_refresh_token = refresh_token.to_owned();
 

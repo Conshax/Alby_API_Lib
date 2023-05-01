@@ -428,11 +428,8 @@ async fn get_new_refresh_token(
             .map_err(Error::RequestError)?;
         Err(Error::AlbyError(error))
     } else {
-        let refresh_token_response = resp.bytes().await.map_err(|e| {
+        resp.json().await.map_err(|e| {
             Error::ParsingError(format!("Failed to convert alby reponse into bytes {}", e))
-        })?;
-
-        serde_json::from_slice(&refresh_token_response)
-            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+        })
     }
 }
