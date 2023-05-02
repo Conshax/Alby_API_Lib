@@ -320,11 +320,11 @@ pub struct CustomRecords {
     #[serde(rename = "696969")]
     pub n696969: String,
     #[serde(rename = "7629169")]
-    pub n7629169: String,
+    pub n7629169: Option<String>,
     #[serde(rename = "7629171")]
-    pub n7629171: String,
+    pub n7629171: Option<String>,
     #[serde(rename = "5482373484")]
-    pub n5482373484: String,
+    pub n5482373484: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
