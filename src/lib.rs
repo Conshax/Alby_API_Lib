@@ -352,20 +352,16 @@ pub struct CreateInvoiceResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
 pub struct MeResponse {
     pub identifier: String,
     pub email: Option<String>,
     pub name: Option<String>,
     pub avatar: Option<String>,
-    #[serde(rename = "keysend_custom_key")]
     pub keysend_custom_key: Option<String>,
-    #[serde(rename = "keysend_custom_value")]
     pub keysend_custom_value: Option<String>,
-    #[serde(rename = "keysend_pubkey")]
     pub keysend_pubkey: Option<String>,
-    #[serde(rename = "lightning_address")]
     pub lightning_address: Option<String>,
+    pub nostr_pubkey: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
