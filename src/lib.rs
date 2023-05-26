@@ -270,6 +270,44 @@ impl Client {
             })?));
         }
     }
+
+    pub async fn post_webhook(&self, request: PostWebhookRequest) -> Result<PostWebhookResponse> {
+        self.client
+            .post("https://api.getalby.com/webhook_endpoints")
+            .json(&request)
+            .header("Content-Type", "application/json")
+            .send()
+            .await
+            .map_err(Error::RequestError)?
+            .json()
+            .await
+            .map_err(Error::RequestError)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct PostWebhookResponse {
+    pub url: String,
+    pub description: String,
+    pub filter_types: Vec<InvoiceFilterTypes>,
+    pub created_at: String,
+    pub id: String,
+    pub endpoint_secret: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PostWebhookRequest {
+    pub description: String,
+    pub url: String,
+    pub filter_types: Vec<InvoiceFilterTypes>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum InvoiceFilterTypes {
+    #[serde(rename = "invoice.incoming.settled")]
+    IncomingSettled,
+    #[serde(rename = "invoice.outgoing.settled")]
+    OutgoingSettled,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
