@@ -289,7 +289,7 @@ impl Client {
 pub struct PostWebhookResponse {
     pub url: String,
     pub description: String,
-    pub filter_types: Vec<InvoiceFilterTypes>,
+    pub filter_types: Vec<InvoiceFilterType>,
     pub created_at: String,
     pub id: String,
     pub endpoint_secret: String,
@@ -299,11 +299,11 @@ pub struct PostWebhookResponse {
 pub struct PostWebhookRequest {
     pub description: String,
     pub url: String,
-    pub filter_types: Vec<InvoiceFilterTypes>,
+    pub filter_types: Vec<InvoiceFilterType>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum InvoiceFilterTypes {
+pub enum InvoiceFilterType {
     #[serde(rename = "invoice.incoming.settled")]
     IncomingSettled,
     #[serde(rename = "invoice.outgoing.settled")]
