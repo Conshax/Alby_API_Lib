@@ -157,9 +157,12 @@ impl Client {
     }
 
     pub async fn get_me(&self) -> Result<MeResponse> {
+        let me_route =
+            std::env::var("ALBY_ME_ROUTE").unwrap_or("https://api.getalby.com/user/me".to_string());
+
         let resp = self
             .client
-            .get("https://api.getalby.com/user/me")
+            .get(me_route)
             .send()
             .await
             .map_err(Error::RequestError)?;
@@ -176,7 +179,7 @@ impl Client {
 
         resp.json()
             .await
-            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {e}")))
     }
 
     pub async fn get_summary(&self) -> Result<SummaryResponse> {
@@ -193,7 +196,7 @@ impl Client {
 
         resp.json()
             .await
-            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {}", e)))
+            .map_err(|e| Error::ParsingError(format!("Failed to parse alby reponse {e}")))
     }
 
     pub async fn get_invoices(
