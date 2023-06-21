@@ -35,6 +35,12 @@ pub enum Error {
 
     #[error("Alby Error")]
     AlbyError(String),
+
+    #[error("Client Error")]
+    ClientError(String),
+
+    #[error("Server Error")]
+    ServerError(String),
 }
 
 #[derive(Debug)]
@@ -160,6 +166,12 @@ impl Client {
 
         if resp.status() == 401 {
             return Err(Error::AuthError);
+        }
+
+        if resp.status().is_client_error() {
+            return Err(Error::ClientError(format!("{:?}", resp.text().await)));
+        } else if resp.status().is_server_error() {
+            return Err(Error::ServerError(format!("{:?}", resp.text().await)));
         }
 
         resp.json()
